@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from './api/axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 import LogoutButton from './LogoutButton';
 import {
   Box,
@@ -47,6 +47,14 @@ const LEADSPage: React.FC = () => {
         <Typography variant="h4" gutterBottom>
           Leads
         </Typography>
+        <Box my={4} display="flex" justifyContent="space-between" alignItems="center">
+         <Typography variant="h4" gutterBottom>
+          Leads
+         </Typography>
+
+          <LogoutButton />
+          </Box>
+
         <TextField
           label="Search leads"
           variant="outlined"

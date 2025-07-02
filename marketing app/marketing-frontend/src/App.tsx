@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LEADSPage from './LEADSPage';
-import LeadDetailPage from './LeadDetailPage';
-import LoginForm from './loginForm'; 
+import LEADSPage from './Pages/LEADSPage';
+import LeadDetailPage from './Pages/LeadDetailPage';
+import LoginForm from './Pages/loginForm'; 
 import './App.css';
 
 function App() {
