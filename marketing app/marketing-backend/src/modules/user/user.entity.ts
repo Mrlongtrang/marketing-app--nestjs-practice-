@@ -1,9 +1,15 @@
+import { IsEmail, IsNotEmpty } from 'class-validator';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'varchar' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
   @Column({ unique: true })
   username: string;
@@ -13,4 +19,17 @@ export class User {
 
   @Column({ default: 'user' })
   role: string;
+
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ type: 'datetime', nullable: true })
+  verificationToken: string | null;
+  verificationTokenExpires: Date | null;
+
+  @Column({ nullable: true })
+  resetPasswordToken: string;
+
+  @Column({ nullable: true, type: 'datetime' })
+  resetPasswordTokenExpires: Date;
 }
