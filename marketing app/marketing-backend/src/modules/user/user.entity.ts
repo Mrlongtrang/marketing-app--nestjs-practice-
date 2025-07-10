@@ -23,8 +23,10 @@ export class User {
   @Column({ default: false })
   isVerified: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   verificationToken: string | null;
+
+  @Column({ nullable: true, type: 'datetime' })
   verificationTokenExpires: Date | null;
 
   @Column({ nullable: true })

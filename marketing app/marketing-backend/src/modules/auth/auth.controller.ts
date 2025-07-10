@@ -7,11 +7,17 @@ import {
   Req,
   HttpCode,
   Query,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiOperation,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 import { Response, Request } from 'express';
 
 @ApiTags('auth')
@@ -20,6 +26,10 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @ApiOperation({
+    summary: 'Register user',
+    description: 'Registers a new user and sends welcome email',
+  })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Validation failed or user exists' })
   register(@Body() dto: RegisterDto) {
@@ -30,7 +40,13 @@ export class AuthController {
     );
   }
 
-  @Post('verify')
+  @Get('verify')
+  @ApiExcludeEndpoint()
+  @ApiOperation({
+    summary: 'Register user',
+    // eslint-disable-next-line prettier/prettier
+    description: 'Use an email that have been made and sends verification email',
+  })
   @ApiResponse({ status: 200, description: 'Email verified successfully' })
   @ApiResponse({ status: 404, description: 'Invalid verification token' })
   async verifyEmail(
@@ -39,7 +55,11 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  @Post('refresh')
+  @Get('refresh')
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Generates new access token from refresh token cookie',
+  })
   refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = (req.cookies as { refresh_token?: string })
       ?.refresh_token;
@@ -58,6 +78,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -69,7 +92,7 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const { access_token, refresh_token } = await this.authService.login(user);
+    const { access_token, refresh_token } = this.authService.login(user);
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: false, // set to false if not using HTTPS during dev
@@ -88,6 +111,11 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiOperation({
+    summary: 'Logout user',
+    description: 'Clears the refresh token cookie and logs out user',
+  })
+  @ApiResponse({ status: 200, description: 'User logged out successfully' })
   @HttpCode(200)
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token', {

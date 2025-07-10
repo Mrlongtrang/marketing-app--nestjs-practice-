@@ -17,11 +17,12 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User)
-    private userRepo: Repository<User>,
+    private readonly userRepo: Repository<User>,
     private mailService: MailService,
   ) {}
 
   async verifyEmail(token: string): Promise<{ message: string }> {
+    console.log('[VERIFY] Called with token:', token);
     const user = await this.userRepo.findOne({
       where: { verificationToken: token },
     });
@@ -46,15 +47,23 @@ export class AuthService {
     email?: string,
   ): Promise<User> {
     const safeEmail = email ?? ''; // or null
-
+    const existing = await this.userRepo.findOne({
+      where: [{ username }, { email: safeEmail }],
+    });
+    if (existing) {
+      throw new BadRequestException(
+        'Email or username have already been Register',
+      );
+    }
     const hash = await bcrypt.hash(password, 10);
     const verificationToken = randomBytes(32).toString('hex'); // generate token
-    const verificationTokenExpires = new Date();
+    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // Expires in 24 hours
     verificationTokenExpires.setHours(verificationTokenExpires.getHours() + 1);
     const user = this.userRepo.create({
       username,
       password: hash,
       email: safeEmail,
+      role: 'user',
       isVerified: false, //  mark unverified
       verificationToken,
       verificationTokenExpires,
