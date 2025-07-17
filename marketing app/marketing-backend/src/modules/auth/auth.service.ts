@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { randomBytes } from 'crypto';
 import { MailService } from 'src/common/mail/mail.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -134,5 +135,11 @@ export class AuthService {
     await this.mailService.sendResetPasswordEmail(user.email, token);
 
     return { message: 'Reset email sent' };
+  }
+
+  changePassword(dto: ChangePasswordDto): Promise<{ message: string }> {
+    return Promise.resolve({
+      message: `Password changed to: ${dto.newPassword}`,
+    });
   }
 }

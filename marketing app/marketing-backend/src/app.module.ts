@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
-import { LeadModule } from './modules/lead/lead.module';
+import { ProductModule } from './modules/product/product.module';
+import { CategoryModule } from './modules/Category/category.module';
 import { UserModule } from './modules/user/user.module';
 import { User } from './modules/user/user.entity';
-import { Lead } from './modules/lead/lead.entity';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -20,13 +21,15 @@ import { Lead } from './modules/lead/lead.entity';
         username: config.get('DB_USER'),
         password: config.get('DB_PASS'),
         database: config.get('DB_NAME'),
-        entities: [User, Lead],
+        entities: [User],
         synchronize: true, //  deploy only
       }),
     }),
+    ProductModule,
+    CategoryModule,
     AuthModule,
-    LeadModule,
     UserModule,
+    CartModule,
   ],
 })
 export class AppModule {}

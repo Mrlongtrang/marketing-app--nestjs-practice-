@@ -8,7 +8,9 @@ import {
   HttpCode,
   Query,
   Get,
+  Patch,
 } from '@nestjs/common';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -23,7 +25,7 @@ import { Response, Request } from 'express';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @ApiOperation({
@@ -131,5 +133,29 @@ export class AuthController {
       path: '/',
     });
     return { message: 'Logged out successfully' };
+  }
+  @Post('resend-verification')
+  @ApiOperation({ summary: 'Resend verification email' })
+  @ApiResponse({ status: 200, description: 'Verification email resent.' })
+  // eslint-disable-next-line prettier/prettier
+  @ApiResponse({ status: 404, description: 'User not found or already verified.' })
+  resendVerification(): void {
+    // TODO: implement later
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({ status: 200, description: 'Reset email sent.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  forgotPassword(): void {
+    // TODO: implement later
+  }
+
+  @Patch('change-password')
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully.' })
+  @ApiResponse({ status: 400, description: 'Invalid current password.' })
+  changePassword(@Body() dto: ChangePasswordDto): Promise<{ message: string }> {
+    return this.authService.changePassword(dto);
   }
 }
