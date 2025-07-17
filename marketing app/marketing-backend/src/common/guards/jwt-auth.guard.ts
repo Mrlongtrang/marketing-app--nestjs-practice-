@@ -6,12 +6,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 
-interface JwtUser {
-  id: number;
-  email: string;
-  role: string;
-}
-
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest<TUser = any>(
@@ -19,7 +13,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     user: any,
     info: any,
     context: ExecutionContext,
-    status?: any,
   ): TUser {
     const req = context.switchToHttp().getRequest<Request>();
 

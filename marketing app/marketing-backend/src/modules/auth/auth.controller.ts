@@ -134,22 +134,6 @@ export class AuthController {
     });
     return { message: 'Logged out successfully' };
   }
-  @Post('resend-verification')
-  @ApiOperation({ summary: 'Resend verification email' })
-  @ApiResponse({ status: 200, description: 'Verification email resent.' })
-  // eslint-disable-next-line prettier/prettier
-  @ApiResponse({ status: 404, description: 'User not found or already verified.' })
-  resendVerification(): void {
-    // TODO: implement later
-  }
-
-  @Post('forgot-password')
-  @ApiOperation({ summary: 'Request password reset' })
-  @ApiResponse({ status: 200, description: 'Reset email sent.' })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  forgotPassword(): void {
-    // TODO: implement later
-  }
 
   @Patch('change-password')
   @ApiOperation({ summary: 'Change user password' })

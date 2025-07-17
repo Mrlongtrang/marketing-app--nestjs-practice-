@@ -12,8 +12,8 @@ export class CartService {
     private cartRepo: Repository<CartItem>,
   ) {}
 
-  create(dto: CreateCartItemDto) {
-    const item = this.cartRepo.create(dto);
+  async create(dto: CreateCartItemDto, userId: number) {
+    const item = this.cartRepo.create({ ...dto, userId });
     return this.cartRepo.save(item);
   }
 
