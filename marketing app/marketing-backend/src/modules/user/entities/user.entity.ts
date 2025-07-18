@@ -26,6 +26,10 @@ export class User {
   @Column({ default: 'user' })
   role: string; // 'user' | 'admin'
 
+  @ApiProperty()
+  @Column({ unique: true })
+  username: string;
+
   //  timestamps
   @ApiProperty()
   @CreateDateColumn()
@@ -38,4 +42,24 @@ export class User {
   @ApiProperty({ required: false })
   @DeleteDateColumn()
   deletedAt?: Date;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  verificationToken?: string | null;
+
+  @ApiProperty({ required: false })
+  @Column({ type: 'datetime', nullable: true })
+  verificationTokenExpires?: Date | null;
+
+  @ApiProperty({ default: false })
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @ApiProperty({ required: false })
+  @Column({ type: 'varchar', nullable: true })
+  resetPasswordToken: string | null;
+
+  @ApiProperty({ required: false })
+  @Column({ type: 'datetime', nullable: true })
+  resetPasswordTokenExpires: Date | null;
 }
