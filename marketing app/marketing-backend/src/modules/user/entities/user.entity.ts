@@ -44,7 +44,7 @@ export class User {
   deletedAt?: Date;
 
   @ApiProperty({ required: false })
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   verificationToken?: string | null;
 
   @ApiProperty({ required: false })
