@@ -37,7 +37,7 @@ export class CategoryService {
     return category;
   }
 
-  // ✅ SOFT DELETE
+  // SOFT DELETE
   async remove(id: number) {
     const result = await this.categoryRepo.softDelete(id);
     if (result.affected === 0) {

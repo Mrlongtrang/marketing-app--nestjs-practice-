@@ -5,7 +5,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProductModule } from './modules/product/product.module';
 import { CategoryModule } from './modules/Category/category.module';
 import { UserModule } from './modules/user/user.module';
-import { User } from './modules/user/user.entity';
 import { CartModule } from './modules/cart/cart.module';
 
 @Module({
@@ -21,7 +20,7 @@ import { CartModule } from './modules/cart/cart.module';
         username: config.get('DB_USER'),
         password: config.get('DB_PASS'),
         database: config.get('DB_NAME'),
-        entities: [User],
+        entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
         synchronize: true, //  deploy only
       }),
     }),
