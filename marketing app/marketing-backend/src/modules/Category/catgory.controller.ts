@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -15,6 +16,8 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { getPagination, parseId } from 'src/common/utils';
+import { PaginationQueryDto } from 'src/common/dto/base.dto';
 @ApiTags('category')
 @Controller('category')
 export class CategoryController {
@@ -32,15 +35,17 @@ export class CategoryController {
   @Get()
   @ApiOperation({ summary: 'Get all categories' })
   @ApiResponse({ status: 200, description: 'Fetched all categories' })
-  findAll() {
-    return this.categoryService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    const { limit, skip } = getPagination(query);
+    return this.categoryService.findAll({ skip, take: limit });
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get category by ID' })
   @ApiResponse({ status: 200, description: 'Fetched category by ID' })
   findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(Number(id));
+    const numericId = parseId(id);
+    return this.categoryService.findOne(numericId);
   }
 
   @Patch(':id')
