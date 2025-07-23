@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -15,6 +16,8 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { parseId } from 'src/common/utils/index';
+import { getPagination } from 'src/common/utils/index';
 @ApiTags('products')
 @Controller('products')
 export class ProductController {
@@ -32,15 +35,16 @@ export class ProductController {
   @Get()
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({ status: 200, description: 'Fetched product list' })
-  findAll() {
-    return this.productService.findAll();
+  findAll(@Query() query: { page?: string; limit?: string }) {
+    const { limit, skip } = getPagination(query);
+    return this.productService.findAll({ skip, take: limit });
   }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get a product by ID' })
   @ApiResponse({ status: 200, description: 'Fetched product by ID' })
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(id);
+    const numericId = parseId(id);
+    return this.productService.findOne(numericId);
   }
 
   @Patch(':id')

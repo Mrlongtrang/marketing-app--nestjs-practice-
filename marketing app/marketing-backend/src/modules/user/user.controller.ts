@@ -13,6 +13,7 @@ import {
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { parseId } from 'src/common/utils/index';
 import { Request } from 'express';
 import {
   ApiTags,
@@ -37,9 +38,10 @@ export class UserController {
   @ApiOperation({ summary: '[ADMIN] Search users' })
   @ApiResponse({ status: 200, description: 'Get user by ID' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.findOne(id);
-  }
+  findOne(@Param('id') id: string) {
+  const numericId = parseId(id); 
+  return this.userService.findOne(numericId);
+}
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)

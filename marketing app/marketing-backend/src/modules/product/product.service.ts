@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindManyOptions } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
@@ -15,12 +15,12 @@ export class ProductService {
     return { message: 'Product created successfully', data: dto };
   }
 
-  findAll() {
-    return { message: 'Fetched product list', data: [] };
+  findAll(options?: FindManyOptions<Product>): Promise<Product[]> {
+    return this.productRepo.find(options);
   }
 
-  findOne(id: string) {
-    return { message: `Fetched product with id ${id}`, data: { id } };
+  findOne(id: number): Promise<Product | null> {
+    return this.productRepo.findOneBy({ id });
   }
 
   update(id: string, dto: UpdateProductDto) {

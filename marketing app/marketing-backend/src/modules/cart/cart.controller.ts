@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CartService } from './cart.service';
@@ -17,10 +18,13 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { User } from 'src/common/decorators/user.decorator';
+import { getPagination } from 'src/common/utils';
+import { PaginationQueryDto } from 'src/common/dto/base.dto';
 
 @ApiTags('cart')
 @Controller('cart')
 export class CartController {
+  productService: any;
   constructor(private readonly cartService: CartService) {}
 
   @Post('items')
@@ -46,8 +50,10 @@ export class CartController {
     description: 'Cart items fetched.',
     type: [CartItem],
   })
-  findAll() {
-    return this.cartService.findAll();
+  @Get()
+  findAll(@Query() query: PaginationQueryDto) {
+    const { limit, skip } = getPagination(query);
+    return this.cartService.findAll({ skip, take: limit });
   }
 
   @Put('items/:id')

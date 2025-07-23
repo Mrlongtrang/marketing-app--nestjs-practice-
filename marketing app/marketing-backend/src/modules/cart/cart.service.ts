@@ -17,8 +17,8 @@ export class CartService {
     return this.cartRepo.save(item);
   }
 
-  findAll() {
-    return this.cartRepo.find();
+  findAll(options: { skip: number; take: number }) {
+    return this.cartRepo.find(options);
   }
 
   async update(id: number, dto: UpdateCartItemDto) {

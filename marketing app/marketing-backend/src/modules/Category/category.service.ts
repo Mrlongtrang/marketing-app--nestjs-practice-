@@ -25,8 +25,8 @@ export class CategoryService {
     return this.categoryRepo.save(category);
   }
 
-  async findAll(): Promise<Category[]> {
-    return this.categoryRepo.find();
+  findAll(options: { skip: number; take: number }) {
+    return this.categoryRepo.find(options);
   }
 
   async findOne(id: number): Promise<Category> {
