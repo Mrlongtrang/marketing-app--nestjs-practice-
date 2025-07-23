@@ -16,6 +16,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { Role } from 'src/common/enums/role.enum';
 import { parseId } from 'src/common/utils/index';
 import { getPagination } from 'src/common/utils/index';
 @ApiTags('products')
@@ -25,7 +26,7 @@ export class ProductController {
 
   @Post()
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'Product created successfully' })
   create(@Body() dto: CreateProductDto) {
@@ -49,7 +50,7 @@ export class ProductController {
 
   @Patch(':id')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Update product by ID' })
   @ApiResponse({ status: 200, description: 'Product updated successfully' })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
@@ -58,7 +59,7 @@ export class ProductController {
 
   @Delete(':id')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Delete product by ID' })
   @ApiResponse({ status: 200, description: 'Product deleted successfully' })
   remove(@Param('id') id: string) {

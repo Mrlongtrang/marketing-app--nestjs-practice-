@@ -16,6 +16,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { Role } from 'src/common/enums/role.enum';
 import { getPagination, parseId } from 'src/common/utils';
 import { PaginationQueryDto } from 'src/common/dto/base.dto';
 @ApiTags('category')
@@ -25,7 +26,7 @@ export class CategoryController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({ status: 201, description: 'Category created successfully' })
   create(@Body() body: CreateCategoryDto) {
@@ -50,7 +51,7 @@ export class CategoryController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Update category by ID' })
   @ApiResponse({ status: 200, description: 'Category updated successfully' })
   update(@Param('id') id: string, @Body() body: UpdateCategoryDto) {
@@ -59,7 +60,7 @@ export class CategoryController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Delete category by ID' })
   @ApiResponse({ status: 200, description: 'Category deleted successfully' })
   remove(@Param('id') id: string) {

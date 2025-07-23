@@ -17,6 +17,7 @@ import { CartItem } from './entities/cart.entities';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { Role } from 'src/common/enums/role.enum';
 import { User } from 'src/common/decorators/user.decorator';
 import { getPagination } from 'src/common/utils';
 import { PaginationQueryDto } from 'src/common/dto/base.dto';
@@ -29,7 +30,7 @@ export class CartController {
 
   @Post('items')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Roles('user')
+  @Roles(Role.User)
   @ApiOperation({ summary: 'Add a product to cart' })
   @ApiResponse({
     status: 201,

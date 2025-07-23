@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { Role } from 'src/common/enums/role.enum'
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -34,7 +35,7 @@ export class UserController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: '[ADMIN] Search users' })
   @ApiResponse({ status: 200, description: 'Get user by ID' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -45,7 +46,7 @@ export class UserController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: '[ADMIN] Upate user info' })
   @ApiResponse({ status: 200, description: 'Update user info' })
   update(
@@ -58,7 +59,7 @@ export class UserController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiOperation({ summary: '[ADMIN] Delete user' })
   @ApiResponse({ status: 204, description: 'Delete user' })
   @ApiResponse({ status: 404, description: 'User not found.' })
