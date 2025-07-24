@@ -25,7 +25,7 @@ export class CategoryService {
     return this.categoryRepo.save(category);
   }
 
-  findAll(options: { skip: number; take: number }) {
+  async findAll(options: { skip: number; take: number }) {
     return this.categoryRepo.find(options);
   }
 

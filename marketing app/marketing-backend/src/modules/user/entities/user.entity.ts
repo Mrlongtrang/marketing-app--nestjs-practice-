@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { CartItem } from 'src/modules/cart/entities/cart.entities';
 
 @Entity('users')
 export class User {
@@ -62,4 +64,8 @@ export class User {
   @ApiProperty({ required: false })
   @Column({ type: 'datetime', nullable: true })
   resetPasswordTokenExpires: Date | null;
+  carts: any;
+
+  @OneToMany(() => CartItem, (cart) => cart.user)
+  cart: CartItem[];
 }

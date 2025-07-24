@@ -6,11 +6,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Product } from 'src/modules/product/entities/product.entity';
 
 @Entity('categories')
 export class Category {
+
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
@@ -35,4 +38,9 @@ export class Category {
   @ApiProperty({ description: 'When the category was deleted', required: false })
   @DeleteDateColumn()
   deletedAt?: Date;
+  product: any;
+
+  @OneToMany(() => Product, (product) => product.category)
+products: Product[];
+
 }

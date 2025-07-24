@@ -19,8 +19,12 @@ export class UserService {
     return this.userRepo.find({ select: ['id', 'role'] });
   }
 
-  findOne(id: number): Promise<User | null> {
-    return this.userRepo.findOne({ where: { id } });
+  async findOne(id: number): Promise<User> {
+    const user = await this.userRepo.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    return user;
   }
 
   async update(

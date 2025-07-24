@@ -5,11 +5,20 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
+  OneToMany,
 } from 'typeorm';
+import { Category } from '../../Category/entities/category.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { CartItem } from 'src/modules/cart/entities/cart.entities';
 
 @Entity('products')
 export class Product {
+  @ManyToOne(() => Category, (category) => category.products, {
+    onDelete: 'SET NULL',
+  })
+  category: Category;
+
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
@@ -38,4 +47,8 @@ export class Product {
   @ApiProperty({ description: 'When the product was deleted', required: false })
   @DeleteDateColumn()
   deletedAt?: Date;
+  carts: any;
+
+  @OneToMany(() => CartItem, (cart) => cart.product)
+  cart: CartItem[];
 }
