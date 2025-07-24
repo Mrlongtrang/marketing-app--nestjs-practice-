@@ -6,6 +6,8 @@ import { ProductModule } from './modules/product/product.module';
 import { CategoryModule } from './modules/Category/category.module';
 import { UserModule } from './modules/user/user.module';
 import { CartModule } from './modules/cart/cart.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -29,6 +31,12 @@ import { CartModule } from './modules/cart/cart.module';
     AuthModule,
     UserModule,
     CartModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}
