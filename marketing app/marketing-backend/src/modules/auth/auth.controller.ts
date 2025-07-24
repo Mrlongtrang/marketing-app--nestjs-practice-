@@ -35,11 +35,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Validation failed or user exists' })
   register(@Body() dto: RegisterDto) {
-    return this.authService.register(
-      dto.username,
-      dto.password,
-      dto.email ?? null,
-    );
+    return this.authService.register(dto);
   }
 
   @Get('verify')
@@ -87,14 +83,11 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const user = await this.authService.validateUser(
-      dto.username,
-      dto.password,
-    );
+    const user = await this.authService.validateUser(dto.email, dto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const { access_token, refresh_token } = this.authService.login(user);
+    const { access_token, refresh_token } = await this.authService.login(user);
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: false, // set to false if not using HTTPS during dev
