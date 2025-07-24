@@ -12,6 +12,8 @@ import { User } from '../user/entities/user.entity';
 import { randomBytes } from 'crypto';
 import { MailService } from 'src/common/services/mail.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -42,39 +44,42 @@ export class AuthService {
     return { message: 'Email verified successfully!' };
   }
 
-  async register(
-    username: string,
-    password: string,
-    email?: string,
-  ): Promise<User> {
-    const safeEmail = email ?? ''; // or null
-    const existing = await this.userRepo.findOne({
-      where: [{ username }, { email: safeEmail }],
-    });
+  async register(dto: RegisterDto): Promise<{ message: string }> {
+    const { email, password } = dto;
+
+    // Kiểm tra email đã tồn tại chưa
+    const existing = await this.userRepo.findOne({ where: { email } });
     if (existing) {
-      throw new BadRequestException(
-        'Email or username have already been Register',
-      );
+      throw new BadRequestException('Email has already been registered');
     }
+
     const hash = await bcrypt.hash(password, 10);
-    const verificationToken = randomBytes(32).toString('hex'); // generate token
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // Expires in 24 hours
-    verificationTokenExpires.setHours(verificationTokenExpires.getHours() + 1);
+
+    const verificationToken = randomBytes(32).toString('hex');
+    const expiresHours = parseInt(
+      process.env.EMAIL_VERIFICATION_EXPIRES_HOURS || '24',
+      10,
+    );
+    const verificationTokenExpires = new Date(
+      Date.now() + expiresHours * 60 * 60 * 1000,
+    );
+
     const user = this.userRepo.create({
-      username,
+      email,
       password: hash,
-      email: safeEmail,
       role: 'user',
-      isVerified: false, //  mark unverified
+      isVerified: false,
       verificationToken,
       verificationTokenExpires,
     });
 
-    const savedUser = await this.userRepo.save(user);
-    // send verification email (optional - implement mailer later)
-    await this.mailService.sendVerificationEmail(safeEmail, verificationToken);
-    return savedUser;
+    await this.userRepo.save(user);
+
+    await this.mailService.sendVerificationEmail(email, verificationToken);
+
+    return { message: 'User successfully registered' };
   }
+
   async validateUser(username: string, password: string): Promise<User | null> {
     const user = await this.userRepo.findOne({ where: { username } });
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -101,15 +106,26 @@ export class AuthService {
     }
   }
 
-  login(user: User) {
-    if (!user.isVerified) {
-      throw new UnauthorizedException('Email not verified');
+  async login(dto: LoginDto) {
+    const { email, password } = dto;
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const payload = { username: user.username, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload, { expiresIn: '15m' }),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
+      access_token: this.jwtService.sign(payload, {
+        expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
+      }),
+      refresh_token: this.jwtService.sign(payload, {
+        expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d',
+      }),
     };
   }
 
