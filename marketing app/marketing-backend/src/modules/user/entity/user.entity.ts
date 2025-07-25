@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { CartItem } from 'src/modules/cart/entities/cart.entities';
+import { CartItem } from '../../cart/entity/cart.entity';
 
 @Entity('users')
 export class User {

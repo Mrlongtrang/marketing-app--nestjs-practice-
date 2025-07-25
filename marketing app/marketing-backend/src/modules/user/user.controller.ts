@@ -52,7 +52,7 @@ export class UserController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserDto,
-    @Req() req: Request & { user: import('./entities/user.entity').User },
+    @Req() req: Request & { user: import('./entity/user.entity').User },
   ) {
     return this.userService.update(id, dto, req.user);
   }
