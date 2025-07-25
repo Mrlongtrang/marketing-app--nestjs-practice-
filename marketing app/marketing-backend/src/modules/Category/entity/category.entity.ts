@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Product } from 'src/modules/product/entities/product.entity';
+import { Product } from '../../product/entity/product.entity';
 
 @Entity('categories')
 export class Category {

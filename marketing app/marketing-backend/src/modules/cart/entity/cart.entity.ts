@@ -7,18 +7,14 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../../user/entities/user.entity';
-import { Product } from '../../product/entities/product.entity';
+import { User } from '../../user/entity/user.entity';
+import { Product } from '../../product/entity/product.entity';
 
 @Entity('cart')
 export class CartItem {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   cartId: number;
-
-  @ApiProperty()
-  @Column()
-  ProductID: number;
 
   @ApiProperty()
   @Column()

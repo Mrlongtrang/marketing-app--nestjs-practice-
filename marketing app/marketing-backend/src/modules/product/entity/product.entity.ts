@@ -8,9 +8,9 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { Category } from '../../Category/entities/category.entity';
+import { Category } from '../../Category/entity/category.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { CartItem } from 'src/modules/cart/entities/cart.entities';
+import { CartItem } from '../../cart/entity/cart.entity';
 
 @Entity('products')
 export class Product {
@@ -49,6 +49,6 @@ export class Product {
   deletedAt?: Date;
   carts: any;
 
-  @OneToMany(() => CartItem, (cart) => cart.product)
+  @OneToMany(() => CartItem, (CartItem) => CartItem.product)
   cart: CartItem[];
 }
