@@ -44,6 +44,16 @@ export class UserController {
   return this.userService.findOne(numericId);
 }
 
+@UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getProfile(@Req() req: any) {
+    return {
+      id: req.user.userId,
+      email: req.user.email,
+      role: req.user.role,
+    };
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)

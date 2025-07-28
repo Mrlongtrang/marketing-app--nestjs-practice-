@@ -9,6 +9,7 @@ interface RequestWithCookies extends Request {
 }
 
 interface JwtPayload {
+  role: any;
   sub: number;
   username: string;
   iat?: number;
@@ -30,6 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   validate(payload: JwtPayload) {
-    return { userId: payload.sub, username: payload.username };
+    return { userId: payload.sub, username: payload.username, role: payload.role };
   }
 }
