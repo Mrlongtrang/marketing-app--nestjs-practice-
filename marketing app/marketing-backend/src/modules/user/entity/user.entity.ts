@@ -25,8 +25,12 @@ export class User {
   password: string;
 
   @ApiProperty()
-  @Column({ default: 'user' })
-  role: string; // 'user' | 'admin'
+   @Column({
+    type: 'enum',
+    enum: ['user', 'admin'], // you can add more roles if needed
+    default: 'user',
+   })
+   role: 'user' | 'admin';
 
   @ApiProperty()
   @Column({ unique: true })
