@@ -46,6 +46,19 @@ export class UserController {
 
 @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @ApiOperation({ summary: 'Get your own user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved user profile',
+    schema: {
+      example: {
+        id: 1,
+        email: 'john.doe@example.com',
+        role: 'admin',
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getProfile(@Req() req: any) {
     return {
       id: req.user.userId,

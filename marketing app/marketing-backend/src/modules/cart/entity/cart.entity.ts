@@ -24,6 +24,9 @@ export class CartItem {
   @Column('decimal', { precision: 10, scale: 2 })
   totalPrice: number;
 
+  @Column('decimal', { precision: 10, scale: 2 })
+  unitPrice: number;
+
   @ApiProperty()
   @Column()
   userId: number;

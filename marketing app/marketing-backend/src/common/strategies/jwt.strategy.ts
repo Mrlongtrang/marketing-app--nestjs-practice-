@@ -11,7 +11,7 @@ interface RequestWithCookies extends Request {
 interface JwtPayload {
   role: any;
   sub: number;
-  username: string;
+  email: string;
   iat?: number;
   exp?: number;
 }
@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload) {
-    return { userId: payload.sub, username: payload.username, role: payload.role };
+  async validate(payload: JwtPayload) {
+    return { userId: payload.sub, email: payload.email, role: payload.role };
   }
 }

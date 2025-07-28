@@ -1,4 +1,4 @@
-import { Controller, Injectable, NotFoundException } from '@nestjs/common';
+import { Controller, Injectable, NotFoundException, UseGuards, Req, Body, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CartItem } from './entity/cart.entity';
@@ -6,7 +6,10 @@ import { User } from '../user/entity/user.entity';
 import { Product } from '../product/entity/product.entity';
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { Request } from 'express';
 @Injectable()
+@UseGuards(JwtAuthGuard)
 @Controller('cart')
 export class CartController {
   constructor(
@@ -20,8 +23,15 @@ export class CartController {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  async create(dto: CreateCartItemDto, userId: number) {
-    //  load relations
+  async create(
+    @Body() dto: CreateCartItemDto,
+    @Req() req: Request,
+  ) {
+    if (!req.user || typeof req.user !== 'object' || !('id' in req.user)) {
+  throw new UnauthorizedException('User not authenticated');
+}
+    const userId = (req.user as any).id;
+
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -34,7 +44,7 @@ export class CartController {
     const item = this.cartRepo.create({
       quantity: dto.quantity,
       totalPrice: product.price * dto.quantity,
-      user,
+      userId,
       product,
     });
     return this.cartRepo.save(item);

@@ -21,7 +21,7 @@ export class CartService {
   ) {}
 
   async create(dto: CreateCartItemDto, userId: number) {
-    // ✅ load relations
+    //  load relations
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -30,14 +30,15 @@ export class CartService {
     });
     if (!product) throw new NotFoundException('Product not found');
 
-    // ✅ create with cartId auto-generated
-    const item = this.cartRepo.create({
+    //  create with cartId auto-generated
+    const CartItem = this.cartRepo.create({
       quantity: dto.quantity,
+      unitPrice: product.price,
       totalPrice: product.price * dto.quantity,
-      user,
+      userId,
       product,
     });
-    return this.cartRepo.save(item);
+    return this.cartRepo.save(CartItem);
   }
 
   findAll(options: { skip: number; take: number }) {
@@ -55,10 +56,8 @@ export class CartService {
     });
     if (!item) throw new NotFoundException('Cart item not found');
 
-    if (dto.quantity !== undefined) {
       item.quantity = dto.quantity;
-      item.totalPrice = item.product.price * dto.quantity;
-    }
+      item.totalPrice = item.product.price * dto.quantity;   
 
     return this.cartRepo.save(item);
   }
