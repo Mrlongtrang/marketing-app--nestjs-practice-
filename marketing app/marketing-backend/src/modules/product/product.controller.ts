@@ -54,8 +54,10 @@ export class ProductController {
   @ApiOperation({ summary: 'Update product by ID' })
   @ApiResponse({ status: 200, description: 'Product updated successfully' })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.productService.update(id, dto);
-  }
+  const numericId = parseId(id);
+  return this.productService.update(numericId, dto);
+}
+
 
   @Delete(':id')
   @UseGuards(RolesGuard, JwtAuthGuard)
