@@ -38,7 +38,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Fetched product list' })
   findAll(@Query() query: { page?: string; limit?: string }) {
     const { limit, skip } = getPagination(query);
-    return this.productService.findAll({ skip, take: limit });
+    return this.productService.findAll(query);
   }
   @Get(':id')
   @ApiOperation({ summary: 'Get a product by ID' })
