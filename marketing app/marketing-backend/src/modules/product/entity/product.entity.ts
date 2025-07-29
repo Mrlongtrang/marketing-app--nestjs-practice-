@@ -51,4 +51,6 @@ export class Product {
 
   @OneToMany(() => CartItem, (CartItem) => CartItem.product)
   cart: CartItem[];
+  finalPrice: number;
+  discountPercent: number;
 }

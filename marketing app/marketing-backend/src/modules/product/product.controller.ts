@@ -38,7 +38,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Fetched product list' })
   findAll(@Query() query: { page?: string; limit?: string }) {
     const { limit, skip } = getPagination(query);
-    return this.productService.findAll({ skip, take: limit });
+    return this.productService.findAll(query);
   }
   @Get(':id')
   @ApiOperation({ summary: 'Get a product by ID' })
@@ -54,8 +54,10 @@ export class ProductController {
   @ApiOperation({ summary: 'Update product by ID' })
   @ApiResponse({ status: 200, description: 'Product updated successfully' })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.productService.update(id, dto);
-  }
+  const numericId = parseId(id);
+  return this.productService.update(numericId, dto);
+}
+
 
   @Delete(':id')
   @UseGuards(RolesGuard, JwtAuthGuard)

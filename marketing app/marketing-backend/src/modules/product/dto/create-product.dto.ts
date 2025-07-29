@@ -10,4 +10,5 @@ export class CreateProductDto {
   @ApiProperty()
   @IsNumber()
   price: number;
+  discountPercent: number;
 }
