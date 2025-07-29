@@ -30,7 +30,7 @@ export class CartController {
     if (!req.user || typeof req.user !== 'object' || !('id' in req.user)) {
   throw new UnauthorizedException('User not authenticated');
 }
-    const userId = (req.user as any).id;
+    const userId = (req.user as { id: number}).id;
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
