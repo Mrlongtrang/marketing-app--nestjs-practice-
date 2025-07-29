@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { CartItem } from '../../cart/entity/cart.entity';
+import { Order as OrderEntity } from 'src/modules/Order/entity/order.entity';
 
 @Entity('users')
 export class User {
@@ -72,4 +73,8 @@ export class User {
 
   @OneToMany(() => CartItem, (cart) => cart.user)
   cart: CartItem[];
+
+  @OneToMany(() => OrderEntity, order => order.user)
+  orders: OrderEntity[];
+
 }
