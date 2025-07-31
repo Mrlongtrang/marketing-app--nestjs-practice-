@@ -33,9 +33,6 @@ export class User {
    })
    role: 'user' | 'admin';
 
-  @ApiProperty()
-  @Column({ unique: true })
-  username: string;
 
   //  timestamps
   @ApiProperty()

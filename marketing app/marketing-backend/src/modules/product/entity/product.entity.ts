@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Category } from '../../Category/entity/category.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -14,10 +15,12 @@ import { CartItem } from '../../cart/entity/cart.entity';
 
 @Entity('products')
 export class Product {
-  @ManyToOne(() => Category, (category) => category.products, {
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => Category, category => category.products, { eager: true })
+  @JoinColumn({ name: 'categoryId' })
   category: Category;
+
+@Column()
+categoryId: string;
 
   @ApiProperty()
   @PrimaryGeneratedColumn()

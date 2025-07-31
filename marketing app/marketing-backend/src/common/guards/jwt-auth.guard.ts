@@ -7,6 +7,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { TokenExpiredError } from 'jsonwebtoken';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 interface JwtPayload {
   sub: string;
@@ -21,7 +23,8 @@ interface RequestWithCookies extends Request {
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private readonly jwtService: JwtService) {
+  constructor(private readonly jwtService: JwtService, 
+              private readonly reflector: Reflector,) {
     super();
   }
 
@@ -31,6 +34,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     info: unknown,
     context: ExecutionContext,
   ): TUser {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+    context.getHandler(),
+    context.getClass(),
+  ]);
+  if (isPublic) {
+    return {} as TUser;
+  }
+
     const req = context.switchToHttp().getRequest<RequestWithCookies>();
     const res = context.switchToHttp().getResponse<Response>();
 
@@ -41,12 +52,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     console.log('[GUARD] Info:', info);
     console.log('[GUARD] Cookies:', req.cookies);
 
-    // ✅ If Passport already validated the user
+    //  If Passport already validated the user
     if (user) {
       return user;
     }
 
-    // ✅ If token expired
+    //  If token expired
     if (info instanceof TokenExpiredError) {
       const refreshToken = req.cookies?.['refreshToken'];
       if (!refreshToken) {
@@ -84,7 +95,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return { sub: payload.sub, role: payload.role } as unknown as TUser;
     }
 
-    // ❌ Otherwise throw unauthorized
+    //  Otherwise throw unauthorized
     throw new UnauthorizedException();
   }
 }

@@ -21,12 +21,16 @@ import {
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { Response, Request } from 'express';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import {  Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @ApiOperation({
     summary: 'Register user',
@@ -38,6 +42,7 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @Public()
   @Get('verify')
   @ApiExcludeEndpoint()
   @ApiOperation({
@@ -45,7 +50,7 @@ export class AuthController {
     // eslint-disable-next-line prettier/prettier
     description: 'Use an email that have been made and sends verification email',
   })
-  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 200, description: 'A Verify link have been sent to your Email, please verify.' })
   @ApiResponse({ status: 404, description: 'Invalid verification token' })
   async verifyEmail(
     @Query('token') token: string,
@@ -74,7 +79,7 @@ export class AuthController {
 
     return { message: 'Token refreshed' };
   }
-
+  @Public()
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
@@ -86,6 +91,7 @@ export class AuthController {
     const user = await this.authService.validateUser(dto.email, dto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
+      
     }
     const { access_token, refresh_token } = await this.authService.login(user);
     res.cookie('access_token', access_token, {
@@ -102,7 +108,20 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    return { message: 'Login successful' };
+    return {
+    message: 'Login successful',
+    data: {
+      token: access_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    },
+  };
   }
 
   @Post('logout')
@@ -135,4 +154,17 @@ export class AuthController {
   changePassword(@Body() dto: ChangePasswordDto): Promise<{ message: string }> {
     return this.authService.changePassword(dto);
   }
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+  return this.authService.forgotPassword(dto.email);
+}
+  @Public()
+  @Post('reset-password')
+  @HttpCode(200)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+  return this.authService.resetPassword(dto.token, dto.newPassword);
+}
+
 }

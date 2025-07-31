@@ -10,7 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from 'src/common/services/mail.service';
 @Module({
   imports: [
-    ConfigModule, // <-- add this
+    ConfigModule, 
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

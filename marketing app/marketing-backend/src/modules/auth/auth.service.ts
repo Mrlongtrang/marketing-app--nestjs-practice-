@@ -80,12 +80,17 @@ export class AuthService {
     return { message: 'User successfully registered' };
   }
 
-  async validateUser(username: string, password: string): Promise<User | null> {
-    const user = await this.userRepo.findOne({ where: { username } });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
-    }
-    return null;
+  async validateUser(email: string,  password: string): Promise<User | null> {
+    const user = await this.userRepo.findOne({ where: { email } });
+   // console.log('[LOGIN] Found user:', user);
+     if (!user) return null;
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  //console.log('[LOGIN] Password match:', isMatch);
+
+  if (!isMatch) return null;
+
+  return user;
   }
 
   async refresh(token: string) {
@@ -96,7 +101,7 @@ export class AuthService {
 
       return {
         access_token: this.jwtService.sign(
-          { username: user.username, sub: user.id },
+          { email: user.email, sub: user.id },
           { expiresIn: '15m' },
         ),
       };
@@ -106,28 +111,27 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginDto) {
-    const { email, password } = dto;
-    const user = await this.userRepo.findOne({ where: { email } });
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  async login(user: User) {
+  const payload = {
+    email: user.email,
+    sub: user.id,
+    role: user.role,
+  };
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  return {
+    access_token: this.jwtService.sign(payload, {
+      expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
+    }),
+    refresh_token: this.jwtService.sign(payload, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d',
+    }),
+  };
+}
 
-    const payload = { username: user.username, sub: user.id, role: user.role };
-    return {
-      access_token: this.jwtService.sign(payload, {
-        expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
-      }),
-      refresh_token: this.jwtService.sign(payload, {
-        expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d',
-      }),
-    };
-  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+  return this.requestPasswordReset(email);
+}
 
   async requestPasswordReset(email: string): Promise<{ message: string }> {
     if (!email || email.trim() === '') {
@@ -152,6 +156,22 @@ export class AuthService {
 
     return { message: 'Reset email sent' };
   }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  const user = await this.userRepo.findOne({ where: { resetPasswordToken: token } });
+
+  if (!user || !user.resetPasswordTokenExpires || user.resetPasswordTokenExpires < new Date()) {
+    throw new BadRequestException('Reset token is invalid or has expired');
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.resetPasswordToken = null;
+  user.resetPasswordTokenExpires = null;
+
+  await this.userRepo.save(user);
+
+  return { message: 'Password has been reset successfully' };
+}
 
   changePassword(dto: ChangePasswordDto): Promise<{ message: string }> {
     return Promise.resolve({
