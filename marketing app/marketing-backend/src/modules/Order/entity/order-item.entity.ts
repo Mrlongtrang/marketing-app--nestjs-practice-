@@ -4,7 +4,7 @@ import {
   Column,
   ManyToOne,
 } from 'typeorm';
-import { Order } from './order.entity';
+import { Order } from '../entity/order.entity';
 import { Product } from '../../product/entity/product.entity';
 
 @Entity()

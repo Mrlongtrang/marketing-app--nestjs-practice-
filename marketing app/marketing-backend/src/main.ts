@@ -13,11 +13,20 @@ async function bootstrap() {
     .setTitle('Marketing API')
     .setDescription('API documentation for the Marketing Backend')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addCookieAuth('access_token', {
+      name: 'access_token',
+      type: 'apiKey',
+      in: 'cookie',
+      description: 'Access token for authentication',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      withCredentials: true, //  Allow cookies to be sent with requests
+    },
+  });
 
   await app.listen(3000);
 }

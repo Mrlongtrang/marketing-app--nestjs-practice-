@@ -1,12 +1,9 @@
-
-import { User } from '../../modules/user/entity/user.entity';
+import { User as UserEntity } from '../../modules/user/entity/user.entity';
 import { Request } from '@nestjs/common';
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: Partial<Pick<User, 'id' | 'email' | 'role'>>;
-    }
+    interface User extends Pick<UserEntity, 'id' | 'email' | 'role'> {}
   }
 }
 

@@ -42,6 +42,25 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+@Get('refresh')
+@Public()
+refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  const refreshToken = req.cookies?.refresh_token;
+  if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
+
+  const newAccessToken = this.authService.refresh(refreshToken);
+
+  res.cookie('access_token', newAccessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: Number(process.env.JWT_REFRESH_EXPIRES_SECONDS) * 1000,
+  });
+
+  return { message: 'Token refreshed' };
+}
+
+
   @Public()
   @Get('verify')
   @ApiExcludeEndpoint()
@@ -58,27 +77,6 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  @Get('refresh')
-  @ApiOperation({
-    summary: 'Refresh access token',
-    description: 'Generates new access token from refresh token cookie',
-  })
-  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const refreshToken = (req.cookies as { refresh_token?: string })
-      ?.refresh_token;
-    if (!refreshToken) throw new UnauthorizedException();
-
-    const access_token = this.authService.refresh(refreshToken);
-
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
-    });
-
-    return { message: 'Token refreshed' };
-  }
   @Public()
   @Post('login')
   @ApiOperation({ summary: 'User login' })
@@ -98,14 +96,14 @@ export class AuthController {
       httpOnly: true,
       secure: false, // set to false if not using HTTPS during dev
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000, // 15 min
+      maxAge: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) * 1000, // 15 min
     });
 
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: Number(process.env.JWT_REFRESH_EXPIRES_SECONDS) * 1000, // 7 days
     });
 
     return {

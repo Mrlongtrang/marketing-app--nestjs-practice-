@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { AuthenticatedRequest } from 'src/types/express';
+import { AuthenticatedRequest } from 'src/common/types/express';
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrderController {

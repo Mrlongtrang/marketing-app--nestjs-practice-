@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProductModule } from './modules/product/product.module';
-import { CategoryModule } from './modules/Category/category.module';
+import { CategoryModule } from './modules/category/category.module';
 import { UserModule } from './modules/user/user.module';
 import { CartModule } from './modules/cart/cart.module';
 import { APP_GUARD } from '@nestjs/core';

@@ -9,7 +9,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Category } from '../../Category/entity/category.entity';
+import { Category } from '../../category/entity/category.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { CartItem } from '../../cart/entity/cart.entity';
 

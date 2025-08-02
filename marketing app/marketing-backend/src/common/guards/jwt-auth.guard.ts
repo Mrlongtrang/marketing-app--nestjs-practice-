@@ -52,6 +52,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     console.log('[GUARD] Info:', info);
     console.log('[GUARD] Cookies:', req.cookies);
 
+    
+    console.log(process.env);
+
     //  If Passport already validated the user
     if (user) {
       return user;
@@ -59,7 +62,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     //  If token expired
     if (info instanceof TokenExpiredError) {
-      const refreshToken = req.cookies?.['refreshToken'];
+      const refreshToken = req.cookies?.['refresh_token'];
       if (!refreshToken) {
         throw new UnauthorizedException('Missing refresh token');
       }
@@ -74,21 +77,23 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
+      const expirationSeconds = Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) || 15 * 60; // Default to 15 minutes
+
       // Issue new access token (sync version)
       const newAccessToken = this.jwtService.sign(
         { sub: payload.sub, role: payload.role },
         {
           secret: process.env.JWT_ACCESS_SECRET as string,
-          expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
+          expiresIn: expirationSeconds,
         },
       );
 
       // Set new access token as cookie
-      res.cookie('accessToken', newAccessToken, {
-        httpOnly: true,
+      res.cookie('access_token', newAccessToken, {
+        httpOnly: false,
         secure: false, // set true in production over HTTPS
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000,
+        sameSite: 'lax',
+        maxAge: expirationSeconds * 1000, // Convert seconds to milliseconds
       });
 
       console.log('[GUARD] Silent refresh issued a new access token');

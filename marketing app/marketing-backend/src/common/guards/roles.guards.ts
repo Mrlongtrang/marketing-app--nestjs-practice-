@@ -2,7 +2,6 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/role.decorator';
 import { Role } from '../enums/role.enum';
-import { Request } from 'express';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -16,8 +15,10 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
-    const request = context.switchToHttp().getRequest<Request>();
-    const userRole = request.user as Role; // nếu chưa có type user
+    const request = context.switchToHttp().getRequest<Express.Request>();
+    console.log('nhu cai DB', request.user);
+    const userRole = request.user?.role; // nếu chưa có type user
+    console.log('ngu', userRole);
     return requiredRoles.some((role) => userRole === role);
   }
 }

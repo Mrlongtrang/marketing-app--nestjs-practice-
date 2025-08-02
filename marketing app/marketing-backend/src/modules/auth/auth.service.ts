@@ -74,64 +74,74 @@ export class AuthService {
     });
 
     await this.userRepo.save(user);
-
     await this.mailService.sendVerificationEmail(email, verificationToken);
 
     return { message: 'User successfully registered' };
   }
 
-  async validateUser(email: string,  password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepo.findOne({ where: { email } });
-   // console.log('[LOGIN] Found user:', user);
-     if (!user) return null;
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  //console.log('[LOGIN] Password match:', isMatch);
-
-  if (!isMatch) return null;
-
-  return user;
+    if (!user) return null;
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return null;
+    return user;
   }
 
-  async refresh(token: string) {
+  async validateRefreshToken(token: string): Promise<User | null> {
     try {
-      const payload = this.jwtService.verify<{ sub: number }>(token);
+      const payload = this.jwtService.verify(token);
       const user = await this.userRepo.findOne({ where: { id: payload.sub } });
-      if (!user) throw new UnauthorizedException();
-
-      return {
-        access_token: this.jwtService.sign(
-          { email: user.email, sub: user.id },
-          { expiresIn: '15m' },
-        ),
-      };
+      // Optional extra: check if token is still valid based on user record
+      return user;
     } catch (err) {
-      console.error('Refresh token verification failed:', err);
+      return null;
+    }
+  }
+
+  async refresh(refreshToken: string): Promise<string> {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+
+      const accessToken = this.jwtService.sign(
+        {
+          sub: payload.sub,
+          email: payload.email,
+          role: payload.role,
+        },
+        {
+          secret: process.env.JWT_ACCESS_SECRET,
+          expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS),
+        },
+      );
+
+      return accessToken;
+    } catch (err) {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
   async login(user: User) {
-  const payload = {
-    email: user.email,
-    sub: user.id,
-    role: user.role,
-  };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
 
-  return {
-    access_token: this.jwtService.sign(payload, {
-      expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
-    }),
-    refresh_token: this.jwtService.sign(payload, {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d',
-    }),
-  };
-}
-
+    return {
+      access_token: this.jwtService.sign(payload, {
+        expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS),
+      }),
+      refresh_token: this.jwtService.sign(payload, {
+        expiresIn: Number(process.env.JWT_REFRESH_EXPIRES_SECONDS),
+      }),
+    };
+  }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-  return this.requestPasswordReset(email);
-}
+    return this.requestPasswordReset(email);
+  }
 
   async requestPasswordReset(email: string): Promise<{ message: string }> {
     if (!email || email.trim() === '') {
@@ -145,33 +155,37 @@ export class AuthService {
     }
 
     const token = randomBytes(32).toString('hex');
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 1); // 1 hour expiry
-
     user.resetPasswordToken = token;
-    user.resetPasswordTokenExpires = expires;
+    user.resetPasswordTokenExpires = new Date(Date.now() + 3600_000); // expires in 1 hour
     await this.userRepo.save(user);
-
     await this.mailService.sendResetPasswordEmail(user.email, token);
-
     return { message: 'Reset email sent' };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-  const user = await this.userRepo.findOne({ where: { resetPasswordToken: token } });
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepo.findOne({
+      where: { resetPasswordToken: token },
+    });
 
-  if (!user || !user.resetPasswordTokenExpires || user.resetPasswordTokenExpires < new Date()) {
-    throw new BadRequestException('Reset token is invalid or has expired');
+    if (
+      !user ||
+      !user.resetPasswordTokenExpires ||
+      user.resetPasswordTokenExpires < new Date()
+    ) {
+      throw new BadRequestException('Reset token is invalid or has expired');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordTokenExpires = null;
+
+    await this.userRepo.save(user);
+
+    return { message: 'Password has been reset successfully' };
   }
-
-  user.password = await bcrypt.hash(newPassword, 10);
-  user.resetPasswordToken = null;
-  user.resetPasswordTokenExpires = null;
-
-  await this.userRepo.save(user);
-
-  return { message: 'Password has been reset successfully' };
-}
 
   changePassword(dto: ChangePasswordDto): Promise<{ message: string }> {
     return Promise.resolve({

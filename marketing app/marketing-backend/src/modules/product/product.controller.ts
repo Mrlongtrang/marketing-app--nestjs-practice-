@@ -12,13 +12,15 @@ import {
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { parseId } from 'src/common/utils/index';
 import { getPagination } from 'src/common/utils/index';
+import { Public } from 'src/common/decorators/public.decorator';
+
 @ApiTags('products')
 @Controller('products')
 export class ProductController {
@@ -30,10 +32,11 @@ export class ProductController {
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'Product created successfully' })
   create(@Body() dto: CreateProductDto) {
+    console.error('Creating product with data:', dto);
     return this.productService.create(dto);
   }
-
-  @Get()
+  @Public()
+  @Get() 
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({ status: 200, description: 'Fetched product list' })
   findAll(@Query() query: { page?: string; limit?: string }) {

@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  OneToMany,
+  OneToMany
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Product } from '../../product/entity/product.entity';
