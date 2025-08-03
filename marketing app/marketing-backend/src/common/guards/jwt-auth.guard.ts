@@ -13,6 +13,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 interface JwtPayload {
   sub: string;
   role: string;
+  email: string;
   iat?: number;
   exp?: number;
 }
@@ -23,8 +24,10 @@ interface RequestWithCookies extends Request {
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private readonly jwtService: JwtService, 
-              private readonly reflector: Reflector,) {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly reflector: Reflector,
+  ) {
     super();
   }
 
@@ -35,12 +38,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     context: ExecutionContext,
   ): TUser {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-    context.getHandler(),
-    context.getClass(),
-  ]);
-  if (isPublic) {
-    return {} as TUser;
-  }
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return {} as TUser;
+    }
 
     const req = context.switchToHttp().getRequest<RequestWithCookies>();
     const res = context.switchToHttp().getResponse<Response>();
@@ -52,41 +56,47 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     console.log('[GUARD] Info:', info);
     console.log('[GUARD] Cookies:', req.cookies);
 
-    
-    console.log(process.env);
-
     //  If Passport already validated the user
     if (user) {
       return user;
     }
 
     //  If token expired
-    if (info instanceof TokenExpiredError) {
+    if (
+      info instanceof TokenExpiredError ||
+      (info instanceof Error && info.message === 'No auth token')
+    ) {
       const refreshToken = req.cookies?.['refresh_token'];
       if (!refreshToken) {
         throw new UnauthorizedException('Missing refresh token');
+      }
+      if (refreshToken) {
+        console.log('[GUARD] Refresh token found, attempting silent refresh');
       }
 
       // Verify refresh token
       let payload: JwtPayload;
       try {
         payload = this.jwtService.verify<JwtPayload>(refreshToken, {
-          secret: process.env.JWT_REFRESH_SECRET as string,
+          secret: process.env.JWT_REFRESH_SECRET,
         });
-      } catch {
+      } catch (error) {
+        console.error('[GUARD] Refresh token verification failed:', error);
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const expirationSeconds = Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) || 15 * 60; // Default to 15 minutes
+      const expirationSeconds =
+        Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) || 15 * 60; // Default to 15 minutes
 
       // Issue new access token (sync version)
       const newAccessToken = this.jwtService.sign(
-        { sub: payload.sub, role: payload.role },
+        { sub: payload.sub, role: payload.role, email: payload.email },
         {
-          secret: process.env.JWT_ACCESS_SECRET as string,
+          secret: process.env.JWT_SECRET,
           expiresIn: expirationSeconds,
         },
       );
+      console.log('[GUARD] New access token generated:', newAccessToken);
 
       // Set new access token as cookie
       res.cookie('access_token', newAccessToken, {
@@ -97,7 +107,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       });
 
       console.log('[GUARD] Silent refresh issued a new access token');
-      return { sub: payload.sub, role: payload.role } as unknown as TUser;
+      return {
+        sub: payload.sub,
+        role: payload.role,
+        email: payload.email,
+      } as TUser;
     }
 
     //  Otherwise throw unauthorized

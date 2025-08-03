@@ -96,14 +96,14 @@ refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
       httpOnly: true,
       secure: false, // set to false if not using HTTPS during dev
       sameSite: 'strict',
-      maxAge: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) * 1000, // 15 min
+      maxAge: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) * 1000, 
     });
 
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: Number(process.env.JWT_REFRESH_EXPIRES_SECONDS) * 1000, // 7 days
+      maxAge: Number(process.env.JWT_REFRESH_EXPIRES_SECONDS) * 1000,
     });
 
     return {

@@ -8,6 +8,7 @@ import { UserModule } from './modules/user/user.module';
 import { CartModule } from './modules/cart/cart.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -25,6 +26,15 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
         entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
         synchronize: true, //  deploy only
       }),
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        // secret: configService.get<string>('JWT_SECRET'),
+        // signOptions: { expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS) },
+      }),
+      inject: [ConfigService],
+      global: true,
     }),
     ProductModule,
     CategoryModule,

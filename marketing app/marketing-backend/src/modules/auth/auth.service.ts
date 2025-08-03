@@ -111,7 +111,7 @@ export class AuthService {
           role: payload.role,
         },
         {
-          secret: process.env.JWT_ACCESS_SECRET,
+          secret: process.env.JWT_SECRET,
           expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS),
         },
       );
@@ -132,9 +132,11 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload, {
         expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_SECONDS),
+        secret: process.env.JWT_SECRET,
       }),
       refresh_token: this.jwtService.sign(payload, {
         expiresIn: Number(process.env.JWT_REFRESH_EXPIRES_SECONDS),
+        secret: process.env.JWT_REFRESH_SECRET,
       }),
     };
   }
