@@ -12,16 +12,15 @@ export class CartService {
   constructor(
     @InjectRepository(CartItem)
     private readonly cartRepo: Repository<CartItem>,
-
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
   ) {}
 
   async create(dto: CreateCartItemDto, userId: number) {
-    //  load relations
+
+    //  load relations FK key
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -35,7 +34,7 @@ export class CartService {
       quantity: dto.quantity,
       unitPrice: product.price,
       totalPrice: product.price * dto.quantity,
-      userId,
+      user: { id: userId },
       product,
     });
     return this.cartRepo.save(CartItem);
@@ -62,9 +61,17 @@ export class CartService {
     return this.cartRepo.save(item);
   }
 
-  async remove(cartId: number) {
-    const item = await this.cartRepo.findOne({ where: { cartId } });
-    if (!item) throw new NotFoundException('Cart item not found');
-    return this.cartRepo.remove(item);
+// remove individual cart item
+  async remove(userId: number, productId: number): Promise<void>  {
+    const item = await this.cartRepo.findOne({ 
+      where: {
+         user: {id: userId },
+         product:{ id: productId },
+         }
+         });
+    if (!item) {
+      throw new NotFoundException('Cart item not found');
+    }
+    await this.cartRepo.remove(item);
   }
 }

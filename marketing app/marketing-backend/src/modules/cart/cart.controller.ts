@@ -31,12 +31,13 @@ export class CartController {
   }
 
   @Post('add')
-async addToCart(
+  async addToCart(
   @Body() dto: CreateCartItemDto,     // DTO with productId and quantity
   @Req() req: AuthenticatedRequest    // Custom request with user.id
 ) {
 // 🔹 Step 1: get current user's ID from request
-  const userId = req.user.id;         
+  const userId = req.user.id;
+  console.log( '[cartcontroller] Recive userId =', userId);    
   // 🔹 Step 2: fetch product to make sure it exists
   const product = await this.productRepo.findOne({
     where: { id: dto.productId },
@@ -61,14 +62,14 @@ async addToCart(
   }
   // 🔹 Step 4b: If not exists, create new cart item
   const newCartItem = this.cartRepo.create({
-    userId,
+    user: { id: userId },
     product,
     quantity: dto.quantity,
     unitPrice: product.price,
     totalPrice: dto.quantity * product.price,
   });
-
   return this.cartRepo.save(newCartItem);
+  
 }
 
   @Delete ('remove/:productId')

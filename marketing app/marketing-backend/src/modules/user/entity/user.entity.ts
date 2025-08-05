@@ -66,7 +66,6 @@ export class User {
   @ApiProperty({ required: false })
   @Column({ type: 'datetime', nullable: true })
   resetPasswordTokenExpires: Date | null;
-  carts: any;
 
   @OneToMany(() => CartItem, (cart) => cart.user)
   cart: CartItem[];

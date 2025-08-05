@@ -12,7 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), //  load .env globally
+    ConfigModule.forRoot({ isGlobal: true }), //  loadnpm run .env globally
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
