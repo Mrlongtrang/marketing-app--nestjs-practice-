@@ -19,6 +19,8 @@ export class ProductService {
     return price - (price * discount / 100);
   }
 
+  
+
   async create(dto: CreateProductDto): Promise<Product> {
     const product = this.productRepo.create(dto);
     product.finalPrice = this.calcFinalPrice(dto.price, dto.discountPercent || 0);

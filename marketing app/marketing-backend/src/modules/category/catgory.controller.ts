@@ -36,7 +36,7 @@ export class CategoryController {
   @Get()
   @ApiOperation({ summary: 'Get all categories' })
   @ApiResponse({ status: 200, description: 'Fetched all categories' })
-  findAll(@Query() query: PaginationQueryDto) {
+  findAll(@Query() query: PaginationQueryDto) {400
     const { limit, skip } = getPagination(query);
     return this.categoryService.findAll({ skip, take: limit });
   }

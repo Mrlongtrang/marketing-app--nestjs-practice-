@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../user/entity/user.entity';
@@ -28,7 +29,7 @@ export class CartItem {
   unitPrice: number;
 
   @ApiProperty()
-  @Column()
+  @Column({name: 'userId'} )
   userId: number;
 
   @ManyToOne(() => User, (user) => user.cart, { onDelete: 'CASCADE' })

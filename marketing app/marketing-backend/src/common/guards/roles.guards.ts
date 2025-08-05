@@ -18,7 +18,6 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Express.Request>();
     console.log('nhu cai DB', request.user);
     const userRole = request.user?.role; // nếu chưa có type user
-    console.log('ngu', userRole);
     return requiredRoles.some((role) => userRole === role);
   }
 }

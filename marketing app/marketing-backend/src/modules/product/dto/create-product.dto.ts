@@ -20,6 +20,12 @@ export class CreateProductDto {
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
+  @IsNumber()
+@IsNotEmpty()
+categoryId: number;
+
+
 }
 
 

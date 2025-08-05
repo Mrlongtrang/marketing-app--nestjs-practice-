@@ -20,7 +20,7 @@ export class Product {
   category: Category;
 
 @Column()
-categoryId: string;
+categoryId: number;
 
   @ApiProperty()
   @PrimaryGeneratedColumn()
