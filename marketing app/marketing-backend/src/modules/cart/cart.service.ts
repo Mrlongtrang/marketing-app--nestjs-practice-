@@ -18,35 +18,54 @@ export class CartService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  async create(dto: CreateCartItemDto, userId: number) {
+  async addSingleToCart(dto: CreateCartItemDto, userId: number) {
+  // 1. Find the product
+  const product = await this.productRepo.findOne({
+    where: { id: dto.productId },
+  });
+  if (!product) {
+    throw new NotFoundException(`Product with ID ${dto.productId} not found`);
+  }
 
-    //  load relations FK key
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-
-    const product = await this.productRepo.findOne({
-      where: { id: dto.productId },
-    });
-    if (!product) throw new NotFoundException('Product not found');
-
-    //  create with cartId auto-generated
-    const CartItem = this.cartRepo.create({
-      quantity: dto.quantity,
-      unitPrice: product.price,
-      totalPrice: product.price * dto.quantity,
+  // 2. Check if item already in cart
+  const existingItem = await this.cartRepo.findOne({
+    where: {
       user: { id: userId },
-      product,
-    });
-    return this.cartRepo.save(CartItem);
+      product: { id: dto.productId },
+    },
+    relations: ['user', 'product'],
+  });
+
+  // 3. If it exists → update quantity & price
+  if (existingItem) {
+    existingItem.quantity += dto.quantity;
+    existingItem.totalPrice = existingItem.quantity * product.price;
+    return this.cartRepo.save(existingItem);
   }
 
-  findAll(options: { skip: number; take: number }) {
-    return this.cartRepo.find({
-      skip: options.skip,
-      take: options.take,
-      relations: ['user', 'product'],
-    });
+  // 4. Else → create new cart item with FK user + product
+  const newItem = this.cartRepo.create({
+    user: { id: userId }, // FK binding here
+    product: product,
+    quantity: dto.quantity,
+    unitPrice: product.price,
+    totalPrice: dto.quantity * product.price,
+  });
+
+  return this.cartRepo.save(newItem);
+}
+// add multi category items to cart
+async addMultipleToCart(dtos: CreateCartItemDto[], userId: number) {
+  const results: CartItem[] = [];
+  for (const dto of dtos) {
+    const result = await this.addSingleToCart(dto, userId);
+    results.push(result);
   }
+
+  return results;
+}
+
+
 
   async update(cartId: number, dto: UpdateCartItemDto) {
     const item = await this.cartRepo.findOne({

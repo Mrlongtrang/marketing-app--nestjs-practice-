@@ -1,4 +1,4 @@
-import { Controller, Injectable, NotFoundException, UseGuards, Req, Body, UnauthorizedException, Get, Post, HttpCode, Delete, ParseIntPipe, Param } from '@nestjs/common';
+import { Controller, Injectable, NotFoundException, UseGuards, Req, Body, UnauthorizedException, Get, Post, HttpCode, Delete, ParseIntPipe, Param, ParseArrayPipe } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CartItem } from './entity/cart.entity';
@@ -27,47 +27,21 @@ export class CartController {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  @Post('add')
-  async addToCart(
-  @Body() dto: CreateCartItemDto,     // DTO with productId and quantity
-  @Req() req: AuthenticatedRequest    // Custom request with user.id
+@Post('add')
+async addToCart(
+  @Body(new ParseArrayPipe({ items: CreateCartItemDto, optional: true })) body: CreateCartItemDto[] | CreateCartItemDto,
+  @Req() req: AuthenticatedRequest
 ) {
-// 🔹 Step 1: get current user's ID from request
   const userId = req.user.id;
-  console.log( '[cartcontroller] Recive userId =', userId);    
-  // 🔹 Step 2: fetch product to make sure it exists
-  const product = await this.productRepo.findOne({
-    where: { id: dto.productId },
-  });
-  if (!product) {
-    throw new NotFoundException('Product not found');
-  }
-  // 🔹 Step 3: check if the product is already in the user's cart
-  const existingCartItem = await this.cartRepo.findOne({
-    where: {
-      user: { id: userId },
-      product: { id: dto.productId },
-    },
-    relations: ['product'],
-  });
+  console.log('[cartcontroller] Recive userId =', userId);
 
-  if (existingCartItem) {
-    // 🔹 Step 4a: If exists, update quantity & totalPrice
-    existingCartItem.quantity += dto.quantity;
-    existingCartItem.totalPrice = existingCartItem.quantity * product.price;
-    return this.cartRepo.save(existingCartItem);
+  if (Array.isArray(body)) {
+    return this.CartService.addMultipleToCart(body, userId);
+  } else {
+    return this.CartService.addSingleToCart(body, userId);
   }
-  // 🔹 Step 4b: If not exists, create new cart item
-  const newCartItem = this.cartRepo.create({
-    user: { id: userId },
-    product,
-    quantity: dto.quantity,
-    unitPrice: product.price,
-    totalPrice: dto.quantity * product.price,
-  });
-  return this.cartRepo.save(newCartItem);
-  
 }
+
 
 @Get('my-cart')
 async getMyCart(@Req() req: AuthenticatedRequest) {
