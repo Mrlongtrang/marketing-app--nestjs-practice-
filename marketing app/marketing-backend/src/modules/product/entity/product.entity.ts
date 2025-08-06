@@ -15,7 +15,7 @@ import { CartItem } from '../../cart/entity/cart.entity';
 
 @Entity('products')
 export class Product {
-  @ManyToOne(() => Category, category => category.products, { eager: true })
+  @ManyToOne(() => Category, category => category.products)
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 

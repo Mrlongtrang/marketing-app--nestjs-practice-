@@ -61,6 +61,16 @@ export class CartService {
     return this.cartRepo.save(item);
   }
 
+  async findcart(userId: number) {
+  return this.cartRepo.find({
+    where: {
+      user: { id: userId },
+    },
+    relations: ['product'], // include product info if needed
+  });
+}
+
+
 // remove individual cart item
   async remove(userId: number, productId: number): Promise<void>  {
     const item = await this.cartRepo.findOne({ 

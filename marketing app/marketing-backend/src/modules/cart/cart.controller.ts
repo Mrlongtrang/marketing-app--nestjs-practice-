@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CartItem } from './entity/cart.entity';
 import { User } from '../user/entity/user.entity';
 import { Product } from '../product/entity/product.entity';
+import { CartService } from './cart.service';
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -13,8 +14,9 @@ import { AuthenticatedRequest } from 'src/common/types/express';
 @UseGuards(JwtAuthGuard)
 @Controller('cart')
 export class CartController {
-  cartService: any;
   constructor(
+    private readonly CartService: CartService,
+
     @InjectRepository(CartItem)
     private readonly cartRepo: Repository<CartItem>,
 
@@ -24,11 +26,6 @@ export class CartController {
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
   ) {}
-  
-  @Get('my-cart')
-  async getMycart(@Req() req: AuthenticatedRequest) {
-  return this.cartService.create(req.user.id);
-  }
 
   @Post('add')
   async addToCart(
@@ -72,6 +69,14 @@ export class CartController {
   
 }
 
+@Get('my-cart')
+async getMyCart(@Req() req: AuthenticatedRequest) {
+  const userId = req.user.id;
+  console.log('[cartController] Getting cart for userId =', userId);
+  return this.CartService.findcart(userId);
+}
+
+
   @Delete ('remove/:productId')
   @HttpCode(204)
   async removeFromCart( 
@@ -79,6 +84,6 @@ export class CartController {
     @Req() req: AuthenticatedRequest,
   ) {
     const userId = req.user.id;
-    return this.cartService.remove(productId, userId);
+    return this.CartService.remove(productId, userId);
   }
 }
