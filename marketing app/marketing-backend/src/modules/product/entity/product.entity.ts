@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { Category } from '../../category/entity/category.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { CartItem } from '../../cart/entity/cart.entity';
+import { CartItem } from '../../cart/entity/cart-item.entity';
 
 @Entity('products')
 export class Product {
@@ -50,7 +50,6 @@ categoryId: number;
   @ApiProperty({ description: 'When the product was deleted', required: false })
   @DeleteDateColumn()
   deletedAt?: Date;
-  carts: any;
 
   @OneToMany(() => CartItem, (CartItem) => CartItem.product)
   cart: CartItem[];

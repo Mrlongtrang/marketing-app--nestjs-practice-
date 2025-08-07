@@ -6,38 +6,23 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../user/entity/user.entity';
-import { Product } from '../../product/entity/product.entity';
+import { CartItem } from './cart-item.entity'; 
 
 @Entity('cart')
-export class CartItem {
+export class Cart {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   cartId: number;
 
-  @ApiProperty()
-  @Column()
-  quantity: number;
-
-  @ApiProperty()
-  @Column('decimal', { precision: 10, scale: 2 })
-  totalPrice: number;
-
-  @Column('decimal', { precision: 10, scale: 2 })
-  unitPrice: number;
-
-  @ApiProperty()
-  @Column({name: 'userId'} )
-  userId: number;
-
-  @ManyToOne(() => User, (user) => user.cart, { nullable: false })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, (user) => user.carts, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Product, (product) => product.cart, { onDelete: 'CASCADE' })
-  product: Product;
+  @OneToMany(() => CartItem, (item) => item.cart, { cascade: true })
+  items: CartItem[];
 
   @CreateDateColumn()
   createdAt: Date;

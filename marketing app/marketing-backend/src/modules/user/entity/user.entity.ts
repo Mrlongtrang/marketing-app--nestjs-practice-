@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { CartItem } from '../../cart/entity/cart.entity';
+import { Cart } from '../../cart/entity/cart.entity';
 import { Order as OrderEntity } from 'src/modules/order/entity/order.entity';
 
 @Entity('users')
@@ -67,8 +67,8 @@ export class User {
   @Column({ type: 'datetime', nullable: true })
   resetPasswordTokenExpires: Date | null;
 
-  @OneToMany(() => CartItem, (cart) => cart.user)
-  cart: CartItem[];
+  @OneToMany(() => Cart, (cart) => cart.user)
+  carts: Cart[];
 
   @OneToMany(() => OrderEntity, order => order.user)
   orders: OrderEntity[];

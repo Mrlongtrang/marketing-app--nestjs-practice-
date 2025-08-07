@@ -1,7 +1,7 @@
 import { Controller, Injectable, NotFoundException, UseGuards, Req, Body, UnauthorizedException, Get, Post, HttpCode, Delete, ParseIntPipe, Param, ParseArrayPipe } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CartItem } from './entity/cart.entity';
+import { CartItem } from './entity/cart-item.entity';
 import { User } from '../user/entity/user.entity';
 import { Product } from '../product/entity/product.entity';
 import { CartService } from './cart.service';
