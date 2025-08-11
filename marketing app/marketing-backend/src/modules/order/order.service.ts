@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entity/order.entity';
 import { OrderItem } from './entity/order-item.entity';
-import { CartItem } from '../cart/entity/cart.entity';
+import { CartItem } from '../cart/entity/cart-item.entity';
 import { User } from '../user/entity/user.entity';
 import { OrderSummaryDto } from './dto/order-summary.dto';
 import { OrderDetailsDto, OrderItemDto } from './dto/order-detail.dto';
@@ -22,8 +22,8 @@ export class OrderService {
     if (!user) throw new NotFoundException('User not found');
 
     const cartItems = await this.cartRepo.find({
-      where: { user: { id: userId } },
-      relations: ['product'],
+      where: { cart: { user: { id: userId } } },
+      relations: ['product', 'cart', 'cart.user'],          
     });
 
     if (!cartItems.length) {

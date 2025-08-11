@@ -189,9 +189,32 @@ export class AuthService {
     return { message: 'Password has been reset successfully' };
   }
 
-  changePassword(dto: ChangePasswordDto): Promise<{ message: string }> {
-    return Promise.resolve({
-      message: `Password changed to: ${dto.newPassword}`,
-    });
+  async changePassword(userId: number, dto: ChangePasswordDto): Promise<{ message: string }> {
+  const user = await this.userRepo.findOne({ where: { id: userId } });
+
+  if (!user) {
+    throw new NotFoundException('User not found');
   }
+
+  // 1. Verify old password
+  const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
+  if (!isMatch) {
+    throw new BadRequestException('Old password is incorrect');
+  }
+
+  // 2. Hash new password
+  const hashed = await bcrypt.hash(dto.newPassword, 10);
+
+  // 3) prevent reusing the same password
+  const isSame = await bcrypt.compare(dto.newPassword, user.password);
+  if (isSame) throw new BadRequestException('New password must be different from the old password');
+
+
+  // 4. Save new password
+  user.password = hashed;
+  await this.userRepo.save(user);
+
+  return { message: 'Password changed successfully' };
+}
+
 }

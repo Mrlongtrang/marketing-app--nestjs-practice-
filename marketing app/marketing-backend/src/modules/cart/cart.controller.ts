@@ -10,8 +10,10 @@ import { UpdateCartItemDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { AuthenticatedRequest } from 'src/common/types/express';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 @Injectable()
 @UseGuards(JwtAuthGuard)
+@ApiTags('cart')
 @Controller('cart')
 export class CartController {
   constructor(
@@ -28,18 +30,22 @@ export class CartController {
   ) {}
 
 @Post('add')
+@ApiBody({
+    type: CreateCartItemDto,
+    isArray: true,
+    examples: {
+    single: { value: [{ productId: 1, quantity: 2 }] },
+    multi:  { value: [{ productId: 1, quantity: 2 }, { productId: 3, quantity: 4 }] },
+  },
+   })
 async addToCart(
-  @Body(new ParseArrayPipe({ items: CreateCartItemDto, optional: true })) body: CreateCartItemDto[] | CreateCartItemDto,
-  @Req() req: AuthenticatedRequest
+  @Body(new ParseArrayPipe({ items: CreateCartItemDto })) items : CreateCartItemDto[],
+  @Req() req: Request
 ) {
-  const userId = req.user.id;
+  const userId = (req as any).user.id;
   console.log('[cartcontroller] Recive userId =', userId);
-
-  if (Array.isArray(body)) {
-    return this.CartService.addMultipleToCart(body, userId);
-  } else {
-    return this.CartService.addSingleToCart(body, userId);
-  }
+  return this.CartService.addMultipleToCart(items, userId);
+  
 }
 
 

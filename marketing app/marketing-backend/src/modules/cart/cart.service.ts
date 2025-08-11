@@ -21,63 +21,43 @@ export class CartService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  async addSingleToCart(dto: CreateCartItemDto, userId: number) {
-  // 1. Load the product
-  const product = await this.productRepo.findOne({
-    where: { id: dto.productId },
-  });
-  if (!product) {
-    throw new NotFoundException(`Product with ID ${dto.productId} not found`);
-  }
-
-  // 2. Find the user's cart
-  const cart = await this.cartEntityRepo.findOne({
+  async addMultipleToCart(dtos: CreateCartItemDto[], userId: number) {
+  // 1) load (or create) the user's Cart
+  let cart = await this.cartEntityRepo.findOne({
     where: { user: { id: userId } },
   });
-  if (!cart) {
-    throw new NotFoundException(`Cart not found for user ${userId}`);
-  }
+  if (!cart) cart = await this.cartEntityRepo.save(this.cartEntityRepo.create({ user: { id: userId } }));
 
-  // 3. Check if item already exists in the user's cart
-  const existingItem = await this.cartRepo.findOne({
-    where: {
-      cart: { cartId: cart.cartId },
-      product: { id: dto.productId },
-    },
-    relations: ['cart', 'product'],
-  });
-
-  // 4. If it exists → update
-  if (existingItem) {
-    existingItem.quantity += dto.quantity;
-    existingItem.totalPrice = existingItem.quantity * product.price;
-    return this.cartRepo.save(existingItem);
-  }
-
-  // 5. Else create a new CartItem
-  const newItem = this.cartRepo.create({
-    cart: cart,
-    product: product,
-    quantity: dto.quantity,
-    unitPrice: product.price,
-    totalPrice: dto.quantity * product.price,
-  });
-
-  return this.cartRepo.save(newItem);
-}
-
-// add multi category items to cart
-async addMultipleToCart(dtos: CreateCartItemDto[], userId: number) {
-  const results:  CartItem[] = [];
+  const results: CartItem[] = [];
   for (const dto of dtos) {
-    const result = await this.addSingleToCart(dto, userId);
-    results.push(result);
+    // 2) verify product exists
+    const product = await this.productRepo.findOne({ where: { id: dto.productId } });
+    if (!product) throw new NotFoundException(`Product ${dto.productId} not found`);
+
+    // 3) upsert CartItem (merge quantity if same product already in cart)
+    const existing = await this.cartRepo.findOne({
+      where: { cart: { cartId: cart.cartId }, product: { id: dto.productId } },
+      relations: ['product', 'cart'],
+    });
+
+    if (existing) {
+      existing.quantity += dto.quantity;
+      existing.totalPrice = existing.quantity * existing.product.price;
+      results.push(await this.cartRepo.save(existing));
+      continue;
+    }
+
+    const newItem = this.cartRepo.create({
+      cart,
+      product,
+      quantity: dto.quantity,
+      unitPrice: product.price,
+      totalPrice: dto.quantity * product.price,
+    });
+    results.push(await this.cartRepo.save(newItem));
   }
-
-  return results;
+  return results; // array even if length === 1
 }
-
-
 
   async update(cartId: number, dto: UpdateCartItemDto) {
     const item = await this.cartRepo.findOne({

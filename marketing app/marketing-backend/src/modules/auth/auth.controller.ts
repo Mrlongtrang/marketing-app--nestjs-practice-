@@ -24,6 +24,7 @@ import { Response, Request } from 'express';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import {  Public } from 'src/common/decorators/public.decorator';
+import { AuthenticatedRequest } from 'src/common/types/express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -149,9 +150,13 @@ refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully.' })
   @ApiResponse({ status: 400, description: 'Invalid current password.' })
-  changePassword(@Body() dto: ChangePasswordDto): Promise<{ message: string }> {
-    return this.authService.changePassword(dto);
-  }
+  async changePassword(
+  @Body() dto: ChangePasswordDto,
+  @Req() req: AuthenticatedRequest,
+) {
+  return this.authService.changePassword(req.user.id, dto);
+}
+
   @Public()
   @Post('forgot-password')
   @HttpCode(200)
