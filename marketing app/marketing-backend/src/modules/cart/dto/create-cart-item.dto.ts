@@ -4,6 +4,7 @@ import { IsInt, IsPositive, Min } from 'class-validator';
 export class CreateCartItemDto {
   @ApiProperty({ example: 1 })
   @IsInt()
+  @IsPositive()
   productId: number;
 
   @ApiProperty({ example: 2 })

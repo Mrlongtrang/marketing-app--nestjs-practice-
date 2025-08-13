@@ -7,6 +7,7 @@ import { User } from '../user/entity/user.entity';
 import { Product } from '../product/entity/product.entity';
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
+import { CartResponseDto, CartLineDto } from './dto/cart.response';
 
 @Injectable()
 export class CartService {
@@ -21,74 +22,113 @@ export class CartService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  async addMultipleToCart(dtos: CreateCartItemDto[], userId: number) {
-  // 1) load (or create) the user's Cart
-  let cart = await this.cartEntityRepo.findOne({
-    where: { user: { id: userId } },
-  });
-  if (!cart) cart = await this.cartEntityRepo.save(this.cartEntityRepo.create({ user: { id: userId } }));
-
-  const results: CartItem[] = [];
-  for (const dto of dtos) {
-    // 2) verify product exists
-    const product = await this.productRepo.findOne({ where: { id: dto.productId } });
-    if (!product) throw new NotFoundException(`Product ${dto.productId} not found`);
-
-    // 3) upsert CartItem (merge quantity if same product already in cart)
-    const existing = await this.cartRepo.findOne({
-      where: { cart: { cartId: cart.cartId }, product: { id: dto.productId } },
-      relations: ['product', 'cart'],
+   // helper: ensure a cart exists for the user
+  private async ensureCart(userId: number): Promise<Cart> {
+    let cart = await this.cartEntityRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
+    if (!cart) {
+      cart = this.cartEntityRepo.create({ user: { id: userId } as unknown as any }); // only here we must pass a stub; if you have a User entity instance, use it instead.
+      cart = await this.cartEntityRepo.save(cart);
+    }
+    return cart;
+  }
 
-    if (existing) {
-      existing.quantity += dto.quantity;
-      existing.totalPrice = existing.quantity * existing.product.price;
-      results.push(await this.cartRepo.save(existing));
-      continue;
+
+  private async getCartSumById(cartId: number): Promise<number> {
+    const row = await this.cartRepo
+      .createQueryBuilder('ci')
+      .innerJoin('ci.cart', 'c')  
+      .select('COALESCE(SUM(ci.quantity * ci.unitPrice), 0)', 'sum')
+      .where('c.cartId = :cartId', { cartId  })   // if your join col is different, change here
+      .getRawOne<{sum: string}>();
+
+    return Number(row?.sum?? 0 );
+  }
+
+  async addMultipleToCart(dtos: CreateCartItemDto[], userId: number): Promise<CartResponseDto> {
+    const cart = await this.ensureCart(userId);
+    const results: CartItem[] = [];
+    for (const dto of dtos) {
+      // 1) product exists
+      const product = await this.productRepo.findOne({ where: { id: dto.productId } });
+      if (!product) throw new NotFoundException(`Product ${dto.productId} not found`);
+
+      // 2) merge quantity if same product already in cart
+      const existing = await this.cartRepo.findOne({
+        where: { cart: { cartId: cart.cartId }, product: { id: dto.productId } },
+        relations: ['product', 'cart'],
+      });
+
+      if (existing) {
+        existing.quantity = Number(existing.quantity) + Number(dto.quantity);
+        existing.unitPrice = Number(product.price);
+        existing.totalPrice = Number(existing.quantity) * Number(existing.unitPrice);
+        results.push(await this.cartRepo.save(existing));
+        continue;
+      }
+
+      // 3) create new item
+      const newItem = this.cartRepo.create({
+        cart,
+        product,
+        quantity: Number(dto.quantity),
+        unitPrice: Number(product.price),
+        totalPrice: Number(dto.quantity) * Number(product.price),
+      });
+      results.push(await this.cartRepo.save(newItem));
     }
 
-    const newItem = this.cartRepo.create({
-      cart,
-      product,
-      quantity: dto.quantity,
-      unitPrice: product.price,
-      totalPrice: dto.quantity * product.price,
+    // 4) fetch items (to return) + SQL SUM for cart total
+    const itemsInCart = await this.cartRepo.find({
+      where: { cart: {cartId: cart.cartId} },
+      relations: ['product'],
+      order: { id: 'ASC' },
     });
-    results.push(await this.cartRepo.save(newItem));
-  }
-  return results; // array even if length === 1
+
+    const totalPrice = await this.getCartSumById(cart.cartId);
+
+     const items: CartLineDto[] = itemsInCart.map(i => ({
+    id: i.id,
+    productId: i.product.id,
+    name: i.product.name,
+    quantity: Number(i.quantity),
+    unitPrice: Number(i.unitPrice),
+    lineTotal: Number(i.totalPrice),
+  }));
+
+  return { cartId: cart.cartId, totalPrice, items };
 }
+  
 
-  async update(cartId: number, dto: UpdateCartItemDto) {
-    const item = await this.cartRepo.findOne({
-      where: { cart: {
-       cartId: cartId,
-      },
-    },
-      relations: ['product', 'cart'],
+  async findcart(userId: number): Promise<CartResponseDto> {
+    const cart = await this.cartEntityRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
-    if (!item) throw new NotFoundException('Cart item not found');
+    if (!cart) {
+      return { cartId: 0, totalPrice: 0, items: [] };
+    }
 
-      item.quantity = dto.quantity;
-      item.totalPrice = item.product.price * dto.quantity;   
+    const rows = await this.cartRepo.find({
+    where: { cart: { cartId: cart.cartId } },
+    relations: ['product'],
+    order: { id: 'ASC' },
+  });
+  
+    const items: CartLineDto[] = rows.map(i => ({
+    id: i.id,
+    productId: i.product.id,
+    name: i.product.name,
+    quantity: Number(i.quantity),
+    unitPrice: Number(i.unitPrice),
+    lineTotal: Number(i.totalPrice),
+  }));
 
-    return this.cartRepo.save(item);
-  }
-
-  async findcart(userId: number) {
-    return this.cartRepo.find({
-  where: {
-    cart: {
-      user: {
-        id: userId,
-      },
-    },
-  },
-  relations: ['product', 'cart', 'cart.user'], // needed to enable deep filter
-});
-  }
-
-
+    const totalPrice = await this.getCartSumById(cart.cartId);
+    return { cartId: cart.cartId, totalPrice, items };
+  } 
 
 // remove individual cart item
  async remove(userId: number, productId: number): Promise<void> {
