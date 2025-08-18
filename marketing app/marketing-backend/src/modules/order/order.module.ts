@@ -6,12 +6,13 @@ import { OrderController } from './order.controller';
 import { Product } from '../product/entity/product.entity';
 import { User } from '../user/entity/user.entity';
 import { Cart } from '../cart/entity/cart.entity';
+import { CartItem } from '../cart/entity/cart-item.entity';
 import { OrderItem } from './entity/order-item.entity';
 import { Category }  from '../category/entity/category.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Product, User, Cart, Category]),
+    TypeOrmModule.forFeature([Order, OrderItem, Product, User, Cart, CartItem, Category]),
   ],
   controllers: [OrderController],
   providers: [OrderService],

@@ -9,6 +9,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     UserModule,
     CartModule,
+    OrderModule,
   ],
   providers: [
     {

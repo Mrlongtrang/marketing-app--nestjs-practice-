@@ -21,7 +21,13 @@ export class Order {
   items: OrderItem[];
 
   @Column('decimal', { precision: 10, scale: 2 })
-  totalAmount: number;
+  totalPrice: number;
+
+  @Column({ type: 'varchar', length: 255 })
+   shippingAddress: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  paymentMethod: string;
 
   @Column({ default: 'pending' }) // optional: use enum instead
   status: string;

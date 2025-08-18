@@ -7,7 +7,11 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser()); //  Required to parse cookies
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+  whitelist: true,          // strips unknown fields
+  forbidNonWhitelisted: true, // 400 on unknown fields
+  transform: true,    
+  }));
 
   const config = new DocumentBuilder()
     .setTitle('Marketing API')
